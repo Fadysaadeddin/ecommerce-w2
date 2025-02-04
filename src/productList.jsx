@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CategoryList from "./CategoryList";
+import CategoryList from "./categoryList";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
