@@ -1,38 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CategoryList from "./categoryList";
+import CategoryList from "./CategoryList";
+import useFetch from "./useFetch";
+import { useFavorites } from "./FavoritesContext";
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const { favoriteIds, toggleFavorite } = useFavorites();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const url = selectedCategory
-          ? `https://fakestoreapi.com/products/category/${selectedCategory}`
-          : "https://fakestoreapi.com/products";
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch products.");
-        const data = await response.json();
+  const {
+    data: products,
+    loading,
+    error,
+    refetch,
+  } = useFetch("https://fakestoreapi.com/products", [selectedCategory]);
 
-        setTimeout(() => {
-          setProducts(data);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
-      }
-    };
 
-    setLoading(true);
-    fetchProducts();
-  }, [selectedCategory]);
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    const url = category
+      ? `https://fakestoreapi.com/products/category/${category}`
+      : "https://fakestoreapi.com/products";
+    refetch(url);
+  };
 
   if (loading) return <p className="loading-message">LOADING PRODUCTS ...</p>;
   if (error) return <p className="error-message">Error: {error}</p>;
@@ -41,7 +33,7 @@ const ProductList = () => {
     <div>
       <CategoryList
         selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
+        setSelectedCategory={handleCategoryChange}
       />
       <h2>PRODUCTS</h2>
       <div className="product-grid">
@@ -54,6 +46,15 @@ const ProductList = () => {
             <img src={product.image} alt={product.title} />
             <h3>{product.title}</h3>
             <p>${product.price}</p>
+            <button
+              className="favorite-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(product.id);
+              }}
+            >
+              {favoriteIds.includes(product.id) ? "❤️" : "🤍"}
+            </button>
           </div>
         ))}
       </div>
